@@ -1,0 +1,69 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<title>Hyderabad Transit Explorer</title>
+
+<link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css"/>
+
+<style>
+body { margin:0; font-family: Arial; }
+#map { height:100vh; width:100%; }
+.header {
+    position:absolute;
+    top:10px;
+    left:50px;
+    z-index:1000;
+    background:white;
+    padding:10px;
+    border-radius:8px;
+    font-weight:bold;
+}
+</style>
+</head>
+
+<body>
+
+<div class="header">Hyderabad Bus Explorer</div>
+<div id="map"></div>
+
+<script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/papaparse@5.4.1/papaparse.min.js"></script>
+<script src="https://unpkg.com/leaflet-omnivore@0.3.4/leaflet-omnivore.min.js"></script>
+
+<script>
+var map = L.map('map').setView([17.3850, 78.4867], 11);
+
+L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
+    attribution: '© OpenStreetMap'
+}).addTo(map);
+
+// CSV Stops
+Papa.parse("data/hyd_stops.csv", {
+    download: true,
+    header: true,
+    complete: function(results) {
+        results.data.forEach(function(stop) {
+            if (stop.stop_lat && stop.stop_lon) {
+                L.circleMarker(
+                    [parseFloat(stop.stop_lat), parseFloat(stop.stop_lon)],
+                    { radius:4, color:"blue" }
+                )
+                .addTo(map)
+                .bindPopup("<b>" + stop.stop_name + "</b>");
+            }
+        });
+    }
+});
+
+// KML Layer
+omnivore.kml('data/hyd_bus_stops.kml')
+    .on('ready', function() {
+        map.fitBounds(this.getBounds());
+    })
+    .addTo(map);
+
+</script>
+
+</body>
+</html>
